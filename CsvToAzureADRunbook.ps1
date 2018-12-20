@@ -159,11 +159,11 @@ function Get-MatchedUsers
     foreach ($User in $Users)
     {
         # Remove Variables each loop
-        Remove-Variable User, ADUser, employeeID, mail, tmp -ErrorAction SilentlyContinue
+        Remove-Variable ADUser, employeeID, mail, tmp -ErrorAction SilentlyContinue
 
         # Create Variables
         $User = Test-EmployeeID -User $User
-        $employeeID = $user.Emp_No
+        $employeeID = $User.Emp_No
         $mail = $user.Email_Address
         $samAccountName = $user."Login ID"
 
@@ -194,8 +194,7 @@ function Get-MatchedUsers
                     $Issue.message = "Chris 21 Email_Address '$($mail)' does not match any userPrincipalName in Azure AD"
                 }
             }
-        # Or check if Users samAccountName exists in ADUsers.samAccountName
-        } elseif ($samAccountName -notin $ADUsers.samAccountName)
+        } elseif ($samAccountName -notin $ADUsers.samAccountName) # Or check if Users samAccountName exists in ADUsers.samAccountName
         {
             # Get ADUser Details using matching Employee ID
             [psobject]$ADUser = $ADUsers | Where-Object employeeID -eq $employeeID
@@ -210,8 +209,7 @@ function Get-MatchedUsers
                 # Write to Issue Object
                 $Issue.message = "Account Disabled in Azure AD. Skipping"                   
             }
-        # Or check if Users mail exists in ADUsers.mail
-        } elseif ($mail -notin $ADUsers.mail)
+        } elseif ($mail -notin $ADUsers.mail) # Or check if Users mail exists in ADUsers.mail
         {
             # Get ADUser Details using matching samAccountName
             [psobject]$ADUser = $ADUsers | Where-Object samAccountName -eq $samAccountName

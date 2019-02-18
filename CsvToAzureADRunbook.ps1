@@ -319,8 +319,15 @@ try
 
     if ($Users)
     {
+        # Export Users to CSV File
         $Users | Export-Csv -Path "$($PathToPlaceBlob)\$($BlobName)" -NoTypeInformation
-            
+
+        # Export Users to JSON File
+        $BlobNameJson = $BlobName -replace ".csv", ".json"
+        $Users | ConvertTo-Json `
+        | % { [Regex]::Replace( $_, "\\u(?<Value>[a-zA-Z0-9]{4})", { param($m) ([char]([int]::Parse($m.Groups['Value'].Value, [System.Globalization.NumberStyles]::HexNumber))).ToString() } ) } `
+        | Set-Content -Encoding Ascii "$($PathToPlaceBlob)\$($BlobNameJson)"
+                
         Write-Output '', " Writing '$($BlobName)' to Azure Blob Storage..."
         $Blob = Set-AzureStorageBlobContent `
             -Blob $BlobName `
@@ -329,6 +336,15 @@ try
             -Context $StorageContext `
             -Force
         Write-Output " SUCCESS! Wrote '$($BlobName)' to Azure Blob Storage!"
+
+        Write-Output '', " Writing '$($BlobNameJson)' to Azure Blob Storage..."
+        $Blob = Set-AzureStorageBlobContent `
+            -Blob $BlobNameJson `
+            -Container $ExportContainer `
+            -File "$($PathToPlaceBlob)\$($BlobNameJson)" `
+            -Context $StorageContext `
+            -Force
+        Write-Output " SUCCESS! Wrote '$($BlobNameJson)' to Azure Blob Storage!"
     } else 
     {
         Write-Output " WARNING! Nothing to Export!"
